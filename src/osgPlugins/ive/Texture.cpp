@@ -107,7 +107,7 @@ void Texture::read(DataInputStream* in)
 
         if ( in->getVersion() >= VERSION_0009 )
         {
-            _borderWidth = in->readInt();
+            /*_borderWidth =*/ in->readInt();
             _useHardwareMipMapGeneration = in->readBool();
             _unrefImageDataAfterApply = in->readBool();
             _clientStorageHint = in->readBool();

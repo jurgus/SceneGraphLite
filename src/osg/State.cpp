@@ -74,7 +74,7 @@ State::State():
     _modelViewProjectionMatrixUniform = new Uniform(Uniform::FLOAT_MAT4,"osg_ModelViewProjectionMatrix");
     _normalMatrixUniform = new Uniform(Uniform::FLOAT_MAT3,"osg_NormalMatrix");
 
-    resetVertexAttributeAlias();
+    resetVertexAttributeAlias(false);
 
     _abortRenderingPtr = NULL;
 
@@ -173,8 +173,10 @@ State::~State()
 
 void State::setUseVertexAttributeAliasing(bool flag)
 {
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
     _useVertexAttributeAliasing = flag;
     if (_globalVertexArrayState.valid()) _globalVertexArrayState->assignAllDispatchers();
+#endif
 }
 
 void State::initializeExtensionProcs()

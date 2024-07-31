@@ -491,9 +491,9 @@ class OSG_EXPORT Texture : public osg::StateAttribute
         const Vec4d& getBorderColor() const { return _borderColor; }
 
         /** Sets the border width. */
-        void setBorderWidth(GLint width) { _borderWidth = width; dirtyTextureParameters(); }
+        void setBorderWidth(GLint /*width*/) {}
 
-        GLint getBorderWidth() const { return _borderWidth; }
+        GLint getBorderWidth() const { return 0; }
 
         enum FilterParameter {
             MIN_FILTER,

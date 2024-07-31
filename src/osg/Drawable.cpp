@@ -234,8 +234,7 @@ Drawable::Drawable()
     _supportsVertexBufferObjects = true;
     _useVertexBufferObjects = true;
 #endif
-
-    _useVertexArrayObject = false;
+    _useVertexArrayObject = true;
 }
 
 Drawable::Drawable(const Drawable& drawable,const CopyOp& copyop):
@@ -449,19 +448,16 @@ void Drawable::setUseDisplayList(bool flag)
 }
 
 
-void Drawable::setUseVertexArrayObject(bool flag)
+void Drawable::setUseVertexArrayObject(bool /*flag*/)
 {
-    _useVertexArrayObject = flag;
+    /*_useVertexArrayObject = flag;*/
 }
 
 
 
-void Drawable::setUseVertexBufferObjects(bool flag)
+void Drawable::setUseVertexBufferObjects(bool /*flag*/)
 {
-    // _useVertexBufferObjects = true;
-
-    // OSG_NOTICE<<"Drawable::setUseVertexBufferObjects("<<flag<<")"<<std::endl;
-
+    /*
     // if value unchanged simply return.
     if (_useVertexBufferObjects==flag) return;
 
@@ -472,6 +468,7 @@ void Drawable::setUseVertexBufferObjects(bool flag)
     }
 
     _useVertexBufferObjects = flag;
+    */
 }
 
 void Drawable::dirtyGLObjects()

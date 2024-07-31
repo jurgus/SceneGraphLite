@@ -920,14 +920,7 @@ GLExtensions::GLExtensions(unsigned int in_contextID):
     isTextureLODBiasSupported  = (glVersion >= 1.2f) || isGLExtensionSupported(contextID, "GL_EXT_texture_lod_bias");
 #endif
 
-    isTextureStorageEnabled = validContext && ((glVersion >= 4.2f) || isGLExtensionSupported(contextID, "GL_ARB_texture_storage"));
-
-    if (isTextureStorageEnabled)
-    {
-        std::string value;
-        if (getEnvVar("OSG_GL_TEXTURE_STORAGE", value) && (value == "OFF" || value == "DISABLE"))
-            isTextureStorageEnabled = false;
-    }
+    isTextureStorageEnabled = validContext && ((OSG_GL3_FEATURES || glVersion >= 4.2f) || isGLExtensionSupported(contextID, "GL_ARB_texture_storage"));
 
     setGLExtensionFuncPtr(glTexStorage1D,"glTexStorage1D","glTexStorage1DARB", validContext);
     setGLExtensionFuncPtr(glTextureStorage1D,"glTextureStorage1D","glTextureStorage1DARB", validContext);

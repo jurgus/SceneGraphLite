@@ -13,7 +13,7 @@ SET(OPENSCENEGRAPH_RELEASE_CANDIDATE 0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0 FATAL_ERROR)
 
 if(COMMAND cmake_policy)
     # Works around warnings libraries linked against that don't
@@ -34,6 +34,8 @@ if(COMMAND cmake_policy)
     # Allows passing -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
     cmake_policy(SET CMP0069 NEW)
 endif()
+
+set(CMAKE_CXX_STANDARD 17)
 
 IF(APPLE)
   # Get OSX version in MAJOR.MINOR format
@@ -332,12 +334,8 @@ IF(WIN32 AND NOT ANDROID)
 
     IF(MSVC)
         # This option is to enable the /MP switch for Visual Studio 2005 and above compilers
-        OPTION(WIN32_USE_MP "Set to ON to build OpenSceneGraph with the /MP option (Visual Studio 2005 and above)." OFF)
-        MARK_AS_ADVANCED(WIN32_USE_MP)
-        IF(WIN32_USE_MP)
-            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-        ENDIF(WIN32_USE_MP)
-
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")		
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /Zc:__cplusplus")
         # turn off various warnings
         # foreach(warning 4244 4251 4267 4275 4290 4786 4305 4996)
         #     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd${warning}")
@@ -432,7 +430,7 @@ ENDIF(WIN32 AND NOT ANDROID)
 
 OPTION(OSG_NOTIFY_DISABLED "Set to ON to build OpenSceneGraph with the notify() disabled." OFF)
 
-OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPREFATED_API #define enabled to allow access to deprecated APIs ." ON)
+OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPREFATED_API #define enabled to allow access to deprecated APIs ." OFF)
 
 OPTION(OSG_USE_FLOAT_MATRIX "Set to ON to build OpenSceneGraph with float Matrix instead of double." OFF)
 MARK_AS_ADVANCED(OSG_USE_FLOAT_MATRIX)
@@ -466,7 +464,7 @@ OPTION(OSG_ENVVAR_SUPPORTED "Set to ON to build OpenSceneGraph with the #define 
 
 
 # Map the OPENGL_PROFILE to OSG_GL*_AVAILABLE settings
-SET(OPENGL_PROFILE "GL2" CACHE STRING "OpenGL Profile to use, choose from GL1, GL2, GL3, GLES1, GLES2, GLES3")
+SET(OPENGL_PROFILE "GL3" CACHE STRING "OpenGL Profile to use, choose from GL1, GL2, GL3, GLES1, GLES2, GLES3")
 
 IF ((OPENGL_PROFILE STREQUAL "GL1") OR (OPENGL_PROFILE STREQUAL "GL2"))
     OPTION(OSG_GL1_AVAILABLE "Set to OFF to disable use of OpenGL 1.x functions library." ON )
@@ -548,7 +546,7 @@ ENDIF()
 SET(DEFAULT_GL_CONTEXT_VERSION "1.0")
 IF (OSG_GL3_AVAILABLE)
 
-    SET(DEFAULT_GL_CONTEXT_VERSION "3.3")
+    SET(DEFAULT_GL_CONTEXT_VERSION "4.3")
 
     IF (APPLE)
         SET(OPENGL_HEADER1 "#include <OpenGL/gl.h>" CACHE STRING "#include<> line for OpenGL Header")

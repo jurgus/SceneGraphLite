@@ -31,6 +31,7 @@
 #include <windowsx.h>
 
 #define MOUSEEVENTF_FROMTOUCH           0xFF515700
+#define GL_CONTEXT_FLAGS                                              0x821E
 
 // _MSC_VER 1500: VS 2008
 #if(WINVER < 0x0601 || (_MSC_VER <= 1500 && !__MINGW32__))
@@ -168,7 +169,142 @@ BOOL
 static SetProcessDpiAwarenessFunc *setProcessDpiAwareness = NULL;
 // #endif
 
+void __stdcall DebugOutput(GLenum source, GLenum type, uint32_t id, GLenum severity, GLsizei /*length*/, const char* message, const void* /*userParam*/)
+{
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+        return;
+    OSG_ALWAYS << "---------------" << std::endl;
+    OSG_ALWAYS << "Debug message (" << id << ": " << message << std::endl;
 
+    switch ( source )
+    {
+        case GL_DEBUG_SOURCE_API:
+            OSG_ALWAYS << "Source: API";
+            break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+            OSG_ALWAYS << "Source: Window System";
+            break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:
+            OSG_ALWAYS << "Source: Shader Compiler";
+            break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:
+            OSG_ALWAYS << "Source: Third Party";
+            break;
+        case GL_DEBUG_SOURCE_APPLICATION:
+            OSG_ALWAYS << "Source: Application";
+            break;
+        case GL_DEBUG_SOURCE_OTHER:
+            OSG_ALWAYS << "Source: Other";
+            break;
+    }
+    OSG_ALWAYS << std::endl;
+
+    switch ( type )
+    {
+        case GL_DEBUG_TYPE_ERROR:
+            OSG_INFO << "Type: Error";
+            break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            OSG_INFO << "Type: Deprecated Behaviour";
+            break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+            OSG_INFO << "Type: Undefined Behaviour";
+            break;
+        case GL_DEBUG_TYPE_PORTABILITY:
+            OSG_INFO << "Type: Portability";
+            break;
+        case GL_DEBUG_TYPE_PERFORMANCE:
+            OSG_INFO << "Type: Performance";
+            break;
+        case GL_DEBUG_TYPE_MARKER:
+            OSG_INFO << "Type: Marker";
+            break;
+        case GL_DEBUG_TYPE_PUSH_GROUP:
+            OSG_INFO << "Type: Push Group";
+            break;
+        case GL_DEBUG_TYPE_POP_GROUP:
+            OSG_INFO << "Type: Pop Group";
+            break;
+        case GL_DEBUG_TYPE_OTHER:
+            OSG_INFO << "Type: Other";
+            break;
+    }
+    OSG_ALWAYS << std::endl;
+
+    switch ( severity )
+    {
+        case GL_DEBUG_SEVERITY_HIGH:
+            OSG_ALWAYS << "Severity: high";
+            break;
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            OSG_ALWAYS << "Severity: medium";
+            break;
+        case GL_DEBUG_SEVERITY_LOW:
+            OSG_ALWAYS << "Severity: low";
+            break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION:
+            OSG_ALWAYS << "Severity: notification";
+            break;
+    }
+    OSG_ALWAYS << std::endl << std::endl;
+}
+
+#ifdef __cplusplus
+extern "C"
+{
+    static HMODULE libGL;
+    typedef void* (__stdcall* PFNWGLGETPROCADDRESSPROC)(const char*);
+
+    static PFNWGLGETPROCADDRESSPROC osgGetProcAddressPtr;
+
+    typedef void(__stdcall* GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
+        const void* userParam);
+
+    typedef void(__stdcall* PFNGLDEBUGMESSAGECONTROLPROC)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint* ids, GLboolean enabled);
+    extern PFNGLDEBUGMESSAGECONTROLPROC osg_glDebugMessageControl;
+#define glDebugMessageControl osg_glDebugMessageControl
+
+    typedef void(__stdcall* PFNGLDEBUGMESSAGECALLBACKPROC)(GLDEBUGPROC callback, const void* userParam);
+    extern PFNGLDEBUGMESSAGECALLBACKPROC glad_glDebugMessageCallback;
+#define glDebugMessageCallback osg_glDebugMessageCallback
+
+    PFNGLDEBUGMESSAGECALLBACKPROC osg_glDebugMessageCallback = nullptr;
+    PFNGLDEBUGMESSAGECONTROLPROC osg_glDebugMessageControl = nullptr;
+
+    static bool open_gl()
+    {
+        libGL = LoadLibraryW(L"opengl32.dll");
+        if ( libGL != nullptr )
+        {
+            osgGetProcAddressPtr = (PFNWGLGETPROCADDRESSPROC)GetProcAddress(libGL, "wglGetProcAddress");
+            return osgGetProcAddressPtr != nullptr;
+        }
+        return false;
+    }
+
+    static void close_gl()
+    {
+        if ( libGL != nullptr )
+        {
+            FreeLibrary((HMODULE)libGL);
+            libGL = nullptr;
+        }
+    }
+
+    static void loadGL()
+    {
+        if ( osg_glDebugMessageControl != nullptr && osg_glDebugMessageCallback != nullptr )
+            return;
+        open_gl();
+        if ( osgGetProcAddressPtr != nullptr )
+        {
+            osg_glDebugMessageControl = (PFNGLDEBUGMESSAGECONTROLPROC)osgGetProcAddressPtr("glDebugMessageControl");
+            osg_glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)osgGetProcAddressPtr("glDebugMessageCallback");
+        }
+        close_gl();
+    }
+}
+#endif
 
 using namespace osgViewer;
 
@@ -243,6 +379,9 @@ static osg::ApplicationUsageProxy GraphicsWindowWin32_e0(osg::ApplicationUsage::
 #define WGL_CONTEXT_FLAGS_ARB          0x2094
 #define WGL_CONTEXT_PROFILE_MASK_ARB   0x9126
 #define ERROR_INVALID_VERSION_ARB      0x2095
+
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #endif
 
 #ifndef WGL_ARB_create_context
@@ -269,6 +408,7 @@ typedef bool (WINAPI * WGLChoosePixelFormatARB) ( HDC, const int *, const float 
 //
 // Utility class to specify the visual attributes for wglChoosePixelFormatARB() function
 //
+
 
 template <typename T> class WGLAttributes
 {
@@ -1928,6 +2068,13 @@ HGLRC GraphicsWindowWin32::createContextImplementation()
                 attribs[ idx++ ] = major;
                 attribs[ idx++ ] = WGL_CONTEXT_MINOR_VERSION_ARB;
                 attribs[ idx++ ] = minor;
+
+#ifdef _DEBUG
+                _traits->glContextFlags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+#endif // _DEBUG
+
+                _traits->glContextProfileMask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+
                 if( _traits->glContextFlags != 0 )
                 {
                     attribs[ idx++ ] = WGL_CONTEXT_FLAGS_ARB;
@@ -2170,7 +2317,20 @@ bool GraphicsWindowWin32::makeCurrentImplementation()
         reportErrorForScreen("GraphicsWindowWin32::makeCurrentImplementation() - Unable to set current OpenGL rendering context", _traits->screenNum, ::GetLastError());
         return false;
     }
+#ifdef _DEBUG
+    int32_t flags = 0;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if ( flags & GL_CONTEXT_FLAG_DEBUG_BIT )
+    {
+        loadGL();
 
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+        glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, GL_TRUE);
+        glDebugMessageCallback(&DebugOutput, this);
+    }
+#endif // DEBUG
     return true;
 }
 

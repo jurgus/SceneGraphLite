@@ -21,14 +21,8 @@ using namespace osg;
 Geometry::Geometry():
     _containsDeprecatedData(false)
 {
-#if 0
     _supportsVertexBufferObjects = true;
-    // temporary test
-    // setSupportsDisplayList(false);
-#else
-    _supportsVertexBufferObjects = true;
-    _useVertexBufferObjects = false;
-#endif
+    _useVertexBufferObjects = true;
 }
 
 Geometry::Geometry(const Geometry& geometry,const CopyOp& copyop):
@@ -41,8 +35,6 @@ Geometry::Geometry(const Geometry& geometry,const CopyOp& copyop):
     _containsDeprecatedData(geometry._containsDeprecatedData)
 {
     _supportsVertexBufferObjects = true;
-    // temporary test
-    // setSupportsDisplayList(false);
 
     for(PrimitiveSetList::const_iterator pitr=geometry._primitives.begin();
         pitr!=geometry._primitives.end();
