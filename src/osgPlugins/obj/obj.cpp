@@ -38,8 +38,8 @@ using namespace obj;
 static std::string strip( const std::string& ss )
 {
     std::string result;
-    result.assign( std::find_if( ss.begin(), ss.end(), std::not1( std::ptr_fun< int, int >( isspace ) ) ),
-                   std::find_if( ss.rbegin(), ss.rend(), std::not1( std::ptr_fun< int, int >( isspace ) ) ).base() );
+    result.assign( std::find_if( ss.begin(), ss.end(), [](int c) {return !std::isspace(c); }),
+                   std::find_if( ss.rbegin(), ss.rend(), [](int c) {return !std::isspace(c); }).base() );
     return( result );
 }
 
