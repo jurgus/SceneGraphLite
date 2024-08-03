@@ -81,7 +81,7 @@ void ScaleAxisDragger::setupDefaultGeometry()
     geode->addDrawable(new osg::ShapeDrawable(_box.get()));
 
     // This ensures correct lighting for scaled draggers.
-#if !defined(OSG_GLES2_AVAILABLE)
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
     geode->getOrCreateStateSet()->setMode(GL_NORMALIZE, osg::StateAttribute::ON);
 #endif
 

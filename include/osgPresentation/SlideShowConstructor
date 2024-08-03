@@ -545,7 +545,7 @@ protected:
     osg::StateSet* createTransformStateSet()
     {
         osg::StateSet* stateset = new osg::StateSet;
-        #if !defined(OSG_GLES2_AVAILABLE)
+        #if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
             stateset->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
         #endif
         return stateset;

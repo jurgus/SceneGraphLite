@@ -112,6 +112,7 @@ bool StateSetManipulator::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa)
             aa.requestRedraw();
             return true;
         }
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         if ( ea.getKey() == _keyEventToggleLighting )
         {
                 setLightingEnabled(!getLightingEnabled());
@@ -124,6 +125,7 @@ bool StateSetManipulator::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa)
                 aa.requestRedraw();
                 return true;
         }
+#endif
         if ( ea.getKey() == _keyEventCyclePolygonMode )
         {
                 cyclePolygonMode();
@@ -138,8 +140,10 @@ bool StateSetManipulator::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa)
 void StateSetManipulator::getUsage(osg::ApplicationUsage& usage) const
 {
     usage.addKeyboardMouseBinding(reinterpret_cast<const char*>(&_keyEventToggleBackfaceCulling),"Toggle backface culling");
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
     usage.addKeyboardMouseBinding(reinterpret_cast<const char*>(&_keyEventToggleLighting),"Toggle lighting");
     usage.addKeyboardMouseBinding(reinterpret_cast<const char*>(&_keyEventToggleTexturing),"Toggle texturing");
+#endif
     usage.addKeyboardMouseBinding(reinterpret_cast<const char*>(&_keyEventCyclePolygonMode),"Toggle polygon fill mode between fill, line (wire frame) and points");
 }
 
@@ -158,24 +162,22 @@ void StateSetManipulator::setBackfaceEnabled(bool newbackface)
 void StateSetManipulator::setLightingEnabled(bool newlighting)
 {
     if (_lighting == newlighting) return;
-
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
     clone();
 
     _lighting = newlighting;
     if( _lighting ) _stateset->setMode(GL_LIGHTING,osg::StateAttribute::ON);
     else _stateset->setMode(GL_LIGHTING,osg::StateAttribute::OVERRIDE|osg::StateAttribute::OFF);
+#endif
 }
 
 void StateSetManipulator::setTextureEnabled(bool newtexture)
 {
     if (_texture==newtexture) return;
-
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
     clone();
 
     _texture = newtexture;
-//    osg::ref_ptr< osg::Texture > tex = dynamic_cast<osg::Texture*>
-//        ( _stateset->getAttribute( osg::StateAttribute::TEXTURE ) );
-//    cout << tex->numTextureUnits() << endl;
 
     unsigned int mode = osg::StateAttribute::OVERRIDE|osg::StateAttribute::OFF;
     if ( _texture ) mode = osg::StateAttribute::INHERIT|osg::StateAttribute::ON;
@@ -189,6 +191,7 @@ void StateSetManipulator::setTextureEnabled(bool newtexture)
         _stateset->setTextureMode( ii, GL_TEXTURE_RECTANGLE, mode );
         _stateset->setTextureMode( ii, GL_TEXTURE_CUBE_MAP, mode);
     }
+#endif
 }
 
 void StateSetManipulator::setPolygonMode(osg::PolygonMode::Mode newpolygonmode)

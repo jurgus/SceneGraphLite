@@ -76,7 +76,7 @@ Node* OrientationConverter::convert( Node *node )
     
     if (!S.isIdentity())
     {
-        #if !defined(OSG_GLES2_AVAILABLE)
+        #if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
             // Add a normalize state. This will be removed if the FlattenStaticTransformsVisitor works
             transform->getOrCreateStateSet()->setMode(GL_NORMALIZE, osg::StateAttribute::ON);
         #endif

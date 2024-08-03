@@ -170,7 +170,7 @@ public:
         xform->setMatrix( osg::Matrix::scale( sx, sy, sz ) );
         xform->addChild( node );
 
-        #ifndef OSG_GLES2_AVAILABLE
+        #if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
             // turn on GL_NORMALIZE to prevent problems with scaled normals
             osg::StateSet* ss = xform->getOrCreateStateSet();
             ss->setMode( GL_NORMALIZE, osg::StateAttribute::ON );

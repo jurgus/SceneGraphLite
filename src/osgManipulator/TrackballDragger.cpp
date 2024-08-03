@@ -136,7 +136,7 @@ void TrackballDragger::setupDefaultGeometry()
         _lineWidth = new osg::LineWidth(_axisLineWidth);
         _geode->getOrCreateStateSet()->setAttributeAndModes(_lineWidth.get(), osg::StateAttribute::ON);
 
-#if !defined(OSG_GLES2_AVAILABLE)
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         _geode->getOrCreateStateSet()->setMode(GL_NORMALIZE, osg::StateAttribute::ON);
 #endif
 
