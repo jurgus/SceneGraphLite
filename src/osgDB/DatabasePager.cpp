@@ -429,7 +429,7 @@ bool DatabasePager::RequestQueue::pruneOldRequestsAndCheckIfEmpty()
             {
                 invalidate(citr->get());
 
-                OSG_INFO<<"DatabasePager::RequestQueue::pruneOldRequestsAndCheckIfEmpty(): Pruning "<<(*citr)<<std::endl;
+                OSG_INFO<<"DatabasePager::RequestQueue::pruneOldRequestsAndCheckIfEmpty(): Pruning "<<(*citr).get()<<std::endl;
                 citr = _requestList.erase(citr);
             }
         }
@@ -541,7 +541,7 @@ void DatabasePager::RequestQueue::takeFirst(osg::ref_ptr<DatabaseRequest>& datab
             {
                 invalidate(citr->get());
 
-                OSG_INFO<<"DatabasePager::RequestQueue::takeFirst(): Pruning "<<(*citr)<<std::endl;
+                OSG_INFO<<"DatabasePager::RequestQueue::takeFirst(): Pruning "<<(*citr).get()<<std::endl;
                 citr = _requestList.erase(citr);
             }
 
@@ -1138,14 +1138,6 @@ DatabasePager::DatabasePager(const DatabasePager& rhs)
     setProcessorAffinity(rhs.getProcessorAffinity());
 
     _activePagedLODList = rhs._activePagedLODList->clone();
-
-#if 1
-    // need to set the display list manager to be able to reuse display lists
-    osg::Drawable::setMinimumNumberOfDisplayListsToRetainInCache(100);
-#else
-    // need to set the display list manager to be able to reuse display lists
-    osg::Drawable::setMinimumNumberOfDisplayListsToRetainInCache(0);
-#endif
 
     // initialize the stats variables
     resetStats();

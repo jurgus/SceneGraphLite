@@ -162,7 +162,7 @@ osg::Geometry* PanoramicSphericalDisplay::createParoramicSphericalDisplayDistort
 
 void PanoramicSphericalDisplay::configure(osgViewer::View& view) const
 {
-    OSG_INFO<<"PanoramicSphericalDisplay::configure(rad="<<_radius<<", cllr="<<_collar<<", sn="<<_screenNum<<", im="<<_intensityMap<<")"<<std::endl;
+    OSG_INFO<<"PanoramicSphericalDisplay::configure(rad="<<_radius<<", cllr="<<_collar<<", sn="<<_screenNum<<", im="<<_intensityMap.get()<<")"<<std::endl;
 
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
     if (!wsi)

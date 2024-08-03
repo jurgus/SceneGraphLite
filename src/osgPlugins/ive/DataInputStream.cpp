@@ -1229,7 +1229,7 @@ osg::Image* DataInputStream::readImage(std::string filename)
     _imageMap[filename] = image;
     // and return image pointer.
 
-    if (_verboseOutput) std::cout<<"read/writeImage() ["<<image<<"]"<<std::endl;
+    if (_verboseOutput) std::cout<<"read/writeImage() ["<<image.get()<<"]"<<std::endl;
 
     return image.release();
 }

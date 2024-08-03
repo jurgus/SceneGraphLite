@@ -198,7 +198,7 @@ void VDSMCameraCullCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 
     _renderStage = cv->getCurrentRenderBin()->getStage();
 
-    OSG_INFO<<"VDSM second : _renderStage = "<<_renderStage<<std::endl;
+    OSG_INFO<<"VDSM second : _renderStage = "<<_renderStage.get()<<std::endl;
 
     if (cv->getComputeNearFarMode() != osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR)
     {

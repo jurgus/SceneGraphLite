@@ -1827,7 +1827,7 @@ osg::ref_ptr<osg::Image> SlideShowConstructor::addInteractiveImage(const std::st
 
     osg::ref_ptr<osg::Image> image = osgDB::readRefImageFile(filename, options.get());
 
-    OSG_INFO<<"addInteractiveImage("<<filename<<") "<<image<<std::endl;
+    OSG_INFO<<"addInteractiveImage("<<filename<<") "<<image.get()<<std::endl;
 
 
     if (!image) return 0;
