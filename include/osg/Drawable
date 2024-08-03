@@ -235,14 +235,6 @@ class OSG_EXPORT Drawable : public Node
         /** Return whether to use a local VertexArrayObject for this Drawable.*/
         bool getUseVertexArrayObject() const { return _useVertexArrayObject; }
 
-#ifdef OSG_USE_DEPRECATED_API
-        /** Deprecated, use dirtyGLObjects() instead. */
-        inline void dirtyDisplayList()
-        {
-            dirtyGLObjects();
-        }
-#endif
-
         /** Force a recompile on next draw() of any OpenGL objects associated with this geoset.*/
         virtual void dirtyGLObjects();
 

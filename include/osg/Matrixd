@@ -327,11 +327,6 @@ class OSG_EXPORT Matrixd
         inline Vec4f operator* ( const Vec4f& v ) const;
         inline Vec4d operator* ( const Vec4d& v ) const;
 
-#ifdef OSG_USE_DEPRECATED_API
-        inline void set(const Quat& q) { makeRotate(q); }   /// deprecated, replace with makeRotate(q)
-        inline void get(Quat& q) const { q = getRotate(); } /// deprecated, replace with getRotate()
-#endif
-
         void setRotate(const Quat& q);
         /** Get the matrix rotation as a Quat. Note that this function
           * assumes a non-scaled matrix and will return incorrect results

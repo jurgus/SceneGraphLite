@@ -110,21 +110,6 @@ class OSGUTIL_EXPORT PolytopeIntersector : public Intersector
 
         inline const osg::Plane& getReferencePlane() const { return _referencePlane; }
 
-#ifdef OSG_USE_DEPRECATED_API
-        enum {
-            DimZero = POINT_PRIMITIVES,    /// deprecated, use POINT_PRIMITIVES
-            DimOne = LINE_PRIMITIVES,      /// deprecated, use POINT_PRIMITIVES
-            DimTwo = TRIANGLE_PRIMITIVES,  /// deprecated, use POINT_PRIMITIVES
-            AllDims =  ALL_PRIMITIVES      /// deprecated, use ALL_PRIMITIVES
-        };
-
-        /** deprecated, use setPrimtiveMask() */
-        inline void setDimensionMask(unsigned int mask) { setPrimitiveMask(mask); }
-
-        /** deprecated, use getPrimtiveMask() */
-        inline unsigned int getDimensionMask() const { return getPrimitiveMask(); }
-#endif
-
 public:
 
         virtual Intersector* clone(osgUtil::IntersectionVisitor& iv);
