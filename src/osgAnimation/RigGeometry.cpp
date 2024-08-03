@@ -51,7 +51,6 @@ osg::BoundingBox RigComputeBoundingBoxCallback::computeBound(const osg::Drawable
 
 RigGeometry::RigGeometry()
 {
-    _supportsDisplayList = false;
     setUseVertexBufferObjects(true);
     setUpdateCallback(new UpdateRigGeometry);
     setDataVariance(osg::Object::DYNAMIC);

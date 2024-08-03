@@ -33,207 +33,10 @@
 
 using namespace osg;
 
-static unsigned int s_minimumNumberOfDisplayListsToRetainInCache = 0;
-void Drawable::setMinimumNumberOfDisplayListsToRetainInCache(unsigned int minimum)
-{
-    s_minimumNumberOfDisplayListsToRetainInCache = minimum;
-}
-
-unsigned int Drawable::getMinimumNumberOfDisplayListsToRetainInCache()
-{
-    return s_minimumNumberOfDisplayListsToRetainInCache;
-}
-
-class DisplayListManager : public GraphicsObjectManager
-{
-public:
-    DisplayListManager(unsigned int contextID):
-        GraphicsObjectManager("DisplayListManager", contextID),
-        _numberDrawablesReusedLastInLastFrame(0),
-        _numberNewDrawablesInLastFrame(0),
-        _numberDeletedDrawablesInLastFrame(0)
-    {
-    }
-
-    virtual void flushDeletedGLObjects(double, double& availableTime)
-    {
-    #ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-        // OSG_NOTICE<<"void DisplayListManager::flushDeletedGLObjects(, "<<availableTime<<")"<<std::endl;
-
-        // if no time available don't try to flush objects.
-        if (availableTime<=0.0) return;
-
-        const osg::Timer& timer = *osg::Timer::instance();
-        osg::Timer_t start_tick = timer.tick();
-        double elapsedTime = 0.0;
-
-        unsigned int noDeleted = 0;
-
-        {
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex_deletedDisplayListCache);
-
-            unsigned int prev_size = _displayListMap.size();
-
-            // trim from front
-            DisplayListMap::iterator ditr=_displayListMap.begin();
-            unsigned int maxNumToDelete = (_displayListMap.size() > s_minimumNumberOfDisplayListsToRetainInCache) ? _displayListMap.size()-s_minimumNumberOfDisplayListsToRetainInCache : 0;
-            for(;
-                ditr!=_displayListMap.end() && elapsedTime<availableTime && noDeleted<maxNumToDelete;
-                ++ditr)
-            {
-                glDeleteLists(ditr->second,1);
-
-                elapsedTime = timer.delta_s(start_tick,timer.tick());
-                ++noDeleted;
-
-                ++_numberDeletedDrawablesInLastFrame;
-            }
-
-            if (ditr!=_displayListMap.begin()) _displayListMap.erase(_displayListMap.begin(),ditr);
-
-            if (noDeleted+_displayListMap.size() != prev_size)
-            {
-                OSG_WARN<<"Error in delete"<<std::endl;
-            }
-        }
-        elapsedTime = timer.delta_s(start_tick,timer.tick());
-
-        if (noDeleted!=0) OSG_INFO<<"Number display lists deleted = "<<noDeleted<<" elapsed time"<<elapsedTime<<std::endl;
-
-        availableTime -= elapsedTime;
-    #else
-        OSG_INFO<<"Warning: Drawable::flushDeletedDisplayLists(..) - not supported."<<std::endl;
-    #endif
-    }
-
-    virtual void flushAllDeletedGLObjects()
-    {
-    #ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex_deletedDisplayListCache);
-
-        for(DisplayListMap::iterator ditr=_displayListMap.begin();
-            ditr!=_displayListMap.end();
-            ++ditr)
-        {
-            glDeleteLists(ditr->second,1);
-        }
-
-        _displayListMap.clear();
-    #else
-        OSG_INFO<<"Warning: Drawable::deleteDisplayList(..) - not supported."<<std::endl;
-    #endif
-    }
-
-    virtual void deleteAllGLObjects()
-    {
-         OSG_INFO<<"DisplayListManager::deleteAllGLObjects() Not currently implemented"<<std::endl;
-    }
-
-    virtual void discardAllGLObjects()
-    {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex_deletedDisplayListCache);
-        _displayListMap.clear();
-    }
-
-    void deleteDisplayList(GLuint globj, unsigned int sizeHint)
-    {
-    #ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-        if (globj!=0)
-        {
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex_deletedDisplayListCache);
-
-            // insert the globj into the cache for the appropriate context.
-            _displayListMap.insert(DisplayListMap::value_type(sizeHint,globj));
-        }
-    #else
-        OSG_INFO<<"Warning: Drawable::deleteDisplayList(..) - not supported."<<std::endl;
-    #endif
-    }
-
-    GLuint generateDisplayList(unsigned int sizeHint)
-    {
-    #ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex_deletedDisplayListCache);
-
-        if (_displayListMap.empty())
-        {
-            ++_numberNewDrawablesInLastFrame;
-            return  glGenLists( 1 );
-        }
-        else
-        {
-            DisplayListMap::iterator itr = _displayListMap.lower_bound(sizeHint);
-            if (itr!=_displayListMap.end())
-            {
-                // OSG_NOTICE<<"Reusing a display list of size = "<<itr->first<<" for requested size = "<<sizeHint<<std::endl;
-
-                ++_numberDrawablesReusedLastInLastFrame;
-
-                GLuint globj = itr->second;
-                _displayListMap.erase(itr);
-
-                return globj;
-            }
-            else
-            {
-                // OSG_NOTICE<<"Creating a new display list of size = "<<sizeHint<<" although "<<_displayListMap.size()<<" are available"<<std::endl;
-                ++_numberNewDrawablesInLastFrame;
-                return  glGenLists( 1 );
-            }
-        }
-    #else
-        OSG_INFO<<"Warning: Drawable::generateDisplayList(..) - not supported."<<std::endl;
-        return 0;
-    #endif
-    }
-
-protected:
-
-    int _numberDrawablesReusedLastInLastFrame;
-    int _numberNewDrawablesInLastFrame;
-    int _numberDeletedDrawablesInLastFrame;
-
-    typedef std::multimap<unsigned int,GLuint> DisplayListMap;
-    OpenThreads::Mutex _mutex_deletedDisplayListCache;
-    DisplayListMap _displayListMap;
-
-};
-
-GLuint Drawable::generateDisplayList(unsigned int contextID, unsigned int sizeHint)
-{
-    return osg::get<DisplayListManager>(contextID)->generateDisplayList(sizeHint);
-}
-
-void Drawable::deleteDisplayList(unsigned int contextID,GLuint globj, unsigned int sizeHint)
-{
-    osg::get<DisplayListManager>(contextID)->deleteDisplayList(globj, sizeHint);
-}
-
-
 Drawable::Drawable()
 {
-    // Note, if your are defining a subclass from drawable which is
-    // dynamically updated then you should set both the following to
-    // to false in your constructor.  This will prevent any display
-    // lists from being automatically created and safeguard the
-    // dynamic updating of data.
-#ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-    _supportsDisplayList = true;
-    _useDisplayList = true;
-#else
-    _supportsDisplayList = false;
-    _useDisplayList = false;
-#endif
-
-#if 0
-    _supportsVertexBufferObjects = false;
-    //_useVertexBufferObjects = false;
-    _useVertexBufferObjects = false;
-#else
     _supportsVertexBufferObjects = true;
     _useVertexBufferObjects = true;
-#endif
     _useVertexArrayObject = true;
 }
 
@@ -243,8 +46,6 @@ Drawable::Drawable(const Drawable& drawable,const CopyOp& copyop):
     _computeBoundingBoxCallback(drawable._computeBoundingBoxCallback),
     _boundingBox(drawable._boundingBox),
     _shape(copyop(drawable._shape.get())),
-    _supportsDisplayList(drawable._supportsDisplayList),
-    _useDisplayList(drawable._useDisplayList),
     _supportsVertexBufferObjects(drawable._supportsVertexBufferObjects),
     _useVertexBufferObjects(drawable._useVertexBufferObjects),
     _useVertexArrayObject(drawable._useVertexArrayObject),
@@ -255,18 +56,6 @@ Drawable::Drawable(const Drawable& drawable,const CopyOp& copyop):
 
 Drawable::~Drawable()
 {
-    // clean up display lists if assigned, for the display lists size  we can't use glGLObjectSizeHint() as it's a virtual function, so have to default to a 0 size hint.
-    #ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-    for(unsigned int i=0;i<_globjList.size();++i)
-    {
-        if (_globjList[i] != 0)
-        {
-            Drawable::deleteDisplayList(i,_globjList[i], 0); // we don't know getGLObjectSizeHint()
-            _globjList[i] = 0;
-        }
-    }
-    #endif
-
     // clean up VertexArrayState
     for(unsigned int i=0; i<_vertexArrayStateList.size(); ++i)
     {
@@ -337,22 +126,6 @@ void Drawable::releaseGLObjects(State* state) const
         // get the contextID (user defined ID of 0 upwards) for the
         // current OpenGL context.
         unsigned int contextID = state->getContextID();
-
-    #ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-        if (_useDisplayList)
-        {
-            // get the globj for the current contextID.
-            GLuint& globj = _globjList[contextID];
-
-            // call the globj if already set otherwise compile and execute.
-            if( globj != 0 )
-            {
-                Drawable::deleteDisplayList(contextID,globj, getGLObjectSizeHint());
-                globj = 0;
-            }
-        }
-    #endif
-
         VertexArrayState* vas = contextID <_vertexArrayStateList.size() ? _vertexArrayStateList[contextID].get() : 0;
         if (vas)
         {
@@ -362,17 +135,6 @@ void Drawable::releaseGLObjects(State* state) const
     }
     else
     {
-    #ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-        for(unsigned int i=0;i<_globjList.size();++i)
-        {
-            if (_globjList[i] != 0)
-            {
-                Drawable::deleteDisplayList(i,_globjList[i], getGLObjectSizeHint());
-                _globjList[i] = 0;
-            }
-        }
-    #endif
-
         for(unsigned int i=0; i<_vertexArrayStateList.size(); ++i)
         {
             VertexArrayState* vas = _vertexArrayStateList[i].get();
@@ -385,105 +147,8 @@ void Drawable::releaseGLObjects(State* state) const
     }
 }
 
-void Drawable::setSupportsDisplayList(bool flag)
-{
-    // if value unchanged simply return.
-    if (_supportsDisplayList==flag) return;
-
-#ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-    // if previously set to true then need to check about display lists.
-    if (_supportsDisplayList)
-    {
-        if (_useDisplayList)
-        {
-            // used to support display lists and display lists switched
-            // on so now delete them and turn useDisplayList off.
-            dirtyGLObjects();
-            _useDisplayList = false;
-        }
-    }
-
-    // set with new value.
-    _supportsDisplayList=flag;
-#else
-    _supportsDisplayList=false;
-#endif
-}
-
-void Drawable::setUseDisplayList(bool flag)
-{
-    // if value unchanged simply return.
-    if (_useDisplayList==flag) return;
-
-#ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-    // if was previously set to true, remove display list.
-
-    if (_useDisplayList)
-    {
-        dirtyGLObjects();
-    }
-
-    if (_supportsDisplayList)
-    {
-
-        // set with new value.
-        _useDisplayList = flag;
-
-    }
-    else // does not support display lists.
-    {
-        if (flag)
-        {
-            OSG_WARN<<"Warning: attempt to setUseDisplayList(true) on a drawable with does not support display lists."<<std::endl;
-        }
-        else
-        {
-            // set with new value.
-            _useDisplayList = false;
-        }
-    }
-#else
-   _useDisplayList = false;
-#endif
-}
-
-
-void Drawable::setUseVertexArrayObject(bool /*flag*/)
-{
-    /*_useVertexArrayObject = flag;*/
-}
-
-
-
-void Drawable::setUseVertexBufferObjects(bool /*flag*/)
-{
-    /*
-    // if value unchanged simply return.
-    if (_useVertexBufferObjects==flag) return;
-
-    // if was previously set to true, remove display list.
-    if (_useVertexBufferObjects)
-    {
-        dirtyGLObjects();
-    }
-
-    _useVertexBufferObjects = flag;
-    */
-}
-
 void Drawable::dirtyGLObjects()
 {
-#ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-    for(unsigned int i=0;i<_globjList.size();++i)
-    {
-        if (_globjList[i] != 0)
-        {
-            Drawable::deleteDisplayList(i,_globjList[i], getGLObjectSizeHint());
-            _globjList[i] = 0;
-        }
-    }
-#endif
-
     for(unsigned int i=0; i<_vertexArrayStateList.size(); ++i)
     {
         VertexArrayState* vas = _vertexArrayStateList[i].get();
@@ -626,31 +291,6 @@ void Drawable::setBound(const BoundingBox& bb) const
 
 void Drawable::compileGLObjects(RenderInfo& renderInfo) const
 {
-
-#ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-    if (!renderInfo.getState()->useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects) && _useDisplayList)
-    {
-        // get the contextID (user defined ID of 0 upwards) for the
-        // current OpenGL context.
-        unsigned int contextID = renderInfo.getContextID();
-
-        // get the globj for the current contextID.
-        GLuint& globj = _globjList[contextID];
-
-        // call the globj if already set otherwise compile and execute.
-        if( globj != 0 )
-        {
-            glDeleteLists( globj, 1 );
-        }
-
-        globj = generateDisplayList(contextID, getGLObjectSizeHint());
-        glNewList( globj, GL_COMPILE );
-
-        drawInner(renderInfo);
-
-        glEndList();
-    }
-#endif
 }
 
 #ifndef INLINE_DRAWABLE_DRAW
@@ -691,33 +331,6 @@ void Drawable::draw(RenderInfo& renderInfo) const
         state.bindVertexArrayObject(state.getCurrentVertexArrayState());
     }
 
-
-#ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
-    if (!state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects) && _useDisplayList)
-    {
-        // get the contextID (user defined ID of 0 upwards) for the
-        // current OpenGL context.
-        unsigned int contextID = renderInfo.getContextID();
-
-        // get the globj for the current contextID.
-        GLuint& globj = _globjList[contextID];
-
-        if( globj == 0 )
-        {
-            // compile the display list
-            globj = generateDisplayList(contextID, getGLObjectSizeHint());
-            glNewList( globj, GL_COMPILE );
-
-            drawInner(renderInfo);
-
-            glEndList();
-        }
-
-        // call the display list
-        glCallList( globj);
-    }
-    else
-#endif
     {
         // if state.previousVertexArrayState() is different than currentVertexArrayState bind current
 
