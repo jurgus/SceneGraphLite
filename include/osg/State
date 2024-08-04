@@ -236,9 +236,6 @@ class OSG_EXPORT State : public Referenced
 
         const osg::Matrix& getModelViewMatrix() const { return *_modelView; }
 
-        void setUseModelViewAndProjectionUniforms(bool flag) { _useModelViewAndProjectionUniforms = flag; }
-        bool getUseModelViewAndProjectionUniforms() const { return _useModelViewAndProjectionUniforms; }
-
         void updateModelViewAndProjectionMatrixUniforms();
 
         void applyModelViewAndProjectionUniformsIfRequired();
@@ -1064,7 +1061,6 @@ class OSG_EXPORT State : public Referenced
         ref_ptr<const RefMatrix>    _modelView;
         ref_ptr<RefMatrix>          _modelViewCache;
 
-        bool                        _useModelViewAndProjectionUniforms;
         ref_ptr<Uniform>            _modelViewMatrixUniform;
         ref_ptr<Uniform>            _projectionMatrixUniform;
         ref_ptr<Uniform>            _modelViewProjectionMatrixUniform;

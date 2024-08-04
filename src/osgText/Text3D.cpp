@@ -510,7 +510,7 @@ void Text3D::drawImplementation(osg::RenderInfo& renderInfo) const
         state.applyModelViewMatrix(modelview);
 
         // workaround for GL3/GL2
-        if (state.getUseModelViewAndProjectionUniforms()) state.applyModelViewAndProjectionUniformsIfRequired();
+        state.applyModelViewAndProjectionUniformsIfRequired();
 
         // OSG_NOTICE<<"New state.applyModelViewMatrix() "<<modelview<<std::endl;
     }
@@ -592,7 +592,7 @@ void Text3D::drawImplementation(osg::RenderInfo& renderInfo) const
         state.applyModelViewMatrix(previous_modelview);
 
         // workaround for GL3/GL2
-        if (state.getUseModelViewAndProjectionUniforms()) state.applyModelViewAndProjectionUniformsIfRequired();
+        state.applyModelViewAndProjectionUniformsIfRequired();
     }
 }
 

@@ -1383,11 +1383,6 @@ void RenderStage::drawImplementation(osg::RenderInfo& renderInfo,RenderLeaf*& pr
         glDisable( GL_SCISSOR_TEST );
     #endif
 
-    #ifdef OSG_GL_MATRICES_AVAILABLE
-        glMatrixMode( GL_MODELVIEW );
-        glLoadIdentity();
-    #endif
-
     // apply the positional state.
     if (_inheritedPositionalStateContainer.valid())
     {

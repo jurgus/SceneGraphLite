@@ -1168,7 +1168,7 @@ void Text::drawImplementation(osg::State& state, const osg::Vec4& colorMultiplie
         state.applyModelViewMatrix(modelview);
 
         // workaround for GL3/GL2
-        if (state.getUseModelViewAndProjectionUniforms()) state.applyModelViewAndProjectionUniformsIfRequired();
+        state.applyModelViewAndProjectionUniformsIfRequired();
 
         // OSG_NOTICE<<"New state.applyModelViewMatrix() "<<modelview<<std::endl;
     }
@@ -1213,7 +1213,7 @@ void Text::drawImplementation(osg::State& state, const osg::Vec4& colorMultiplie
         state.applyModelViewMatrix(previous_modelview);
 
         // workaround for GL3/GL2
-        if (state.getUseModelViewAndProjectionUniforms()) state.applyModelViewAndProjectionUniformsIfRequired();
+        state.applyModelViewAndProjectionUniformsIfRequired();
     }
 }
 

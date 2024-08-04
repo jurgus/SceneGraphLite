@@ -61,12 +61,6 @@ State::State():
     _modelView = _identity;
     _modelViewCache = new osg::RefMatrix;
 
-    #if !defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
-        _useModelViewAndProjectionUniforms = true;
-    #else
-        _useModelViewAndProjectionUniforms = false;
-    #endif
-
     _modelViewMatrixUniform = new Uniform(Uniform::FLOAT_MAT4,"osg_ModelViewMatrix");
     _projectionMatrixUniform = new Uniform(Uniform::FLOAT_MAT4,"osg_ProjectionMatrix");
     _modelViewProjectionMatrixUniform = new Uniform(Uniform::FLOAT_MAT4,"osg_ModelViewProjectionMatrix");
@@ -1185,10 +1179,10 @@ void State::applyModelViewAndProjectionUniformsIfRequired()
 {
     if (!_lastAppliedProgramObject) return;
 
-    if (_modelViewMatrixUniform.valid()) _lastAppliedProgramObject->apply(*_modelViewMatrixUniform);
-    if (_projectionMatrixUniform) _lastAppliedProgramObject->apply(*_projectionMatrixUniform);
-    if (_modelViewProjectionMatrixUniform) _lastAppliedProgramObject->apply(*_modelViewProjectionMatrixUniform);
-    if (_normalMatrixUniform) _lastAppliedProgramObject->apply(*_normalMatrixUniform);
+    _lastAppliedProgramObject->apply(*_modelViewMatrixUniform);
+    _lastAppliedProgramObject->apply(*_projectionMatrixUniform);
+    _lastAppliedProgramObject->apply(*_modelViewProjectionMatrixUniform);
+    _lastAppliedProgramObject->apply(*_normalMatrixUniform);
 }
 
 namespace State_Utils
@@ -1325,7 +1319,7 @@ bool State::convertVertexShaderSourceToOsgBuiltIns(std::string& source) const
         declPos = source.find( '\n', extPos );
         declPos = declPos != std::string::npos ? declPos+1 : source.length();
     }
-    if (_useModelViewAndProjectionUniforms)
+
     {
         // replace ftransform as it only works with built-ins
         State_Utils::replace(source, "ftransform()", "gl_ModelViewProjectionMatrix * gl_Vertex");
@@ -1375,30 +1369,15 @@ void State::applyProjectionMatrix(const osg::RefMatrix* matrix)
             _projection=_identity;
         }
 
-        if (_useModelViewAndProjectionUniforms)
-        {
-            if (_projectionMatrixUniform.valid()) _projectionMatrixUniform->set(*_projection);
-            updateModelViewAndProjectionMatrixUniforms();
-        }
-#ifdef OSG_GL_MATRICES_AVAILABLE
-        glMatrixMode( GL_PROJECTION );
-            glLoadMatrix(_projection->ptr());
-        glMatrixMode( GL_MODELVIEW );
-#endif
+        _projectionMatrixUniform->set(*_projection);
+        updateModelViewAndProjectionMatrixUniforms();
     }
 }
 
 void State::loadModelViewMatrix()
 {
-    if (_useModelViewAndProjectionUniforms)
-    {
-        if (_modelViewMatrixUniform.valid()) _modelViewMatrixUniform->set(*_modelView);
-        updateModelViewAndProjectionMatrixUniforms();
-    }
-
-#ifdef OSG_GL_MATRICES_AVAILABLE
-    glLoadMatrix(_modelView->ptr());
-#endif
+    _modelViewMatrixUniform->set(*_modelView);
+    updateModelViewAndProjectionMatrixUniforms();
 }
 
 void State::applyModelViewMatrix(const osg::RefMatrix* matrix)
@@ -1430,8 +1409,8 @@ void State::applyModelViewMatrix(const osg::Matrix& matrix)
 
 void State::updateModelViewAndProjectionMatrixUniforms()
 {
-    if (_modelViewProjectionMatrixUniform.valid()) _modelViewProjectionMatrixUniform->set((*_modelView) * (*_projection));
-    if (_normalMatrixUniform.valid())
+    _modelViewProjectionMatrixUniform->set((*_modelView) * (*_projection));
+    
     {
         Matrix mv(*_modelView);
         mv.setTrans(0.0, 0.0, 0.0);
