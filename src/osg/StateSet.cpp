@@ -983,6 +983,8 @@ void StateSet::merge(const StateSet& rhs)
 
 void StateSet::setMode(StateAttribute::GLMode mode, StateAttribute::GLModeValue value)
 {
+    if (mode == GL_LIGHTING || mode == GL_NORMALIZE)
+        return;
     if (getTextureGLModeSet().isTextureMode(mode))
     {
         OSG_NOTICE<<"Warning: texture mode '"<<mode<<"'passed to setMode(mode,value), "<<std::endl;

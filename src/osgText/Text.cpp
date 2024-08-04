@@ -47,8 +47,6 @@ Text::Text():
     _colorGradientBottomRight(0.0f, 0.0f, 1.0f, 1.0f),
     _colorGradientTopRight(1.0f, 1.0f, 1.0f, 1.0f)
 {
-    _supportsVertexBufferObjects = true;
-
     const std::string& str = osg::DisplaySettings::instance()->getTextShaderTechnique();
     if (!str.empty())
     {
@@ -1100,9 +1098,7 @@ void Text::drawImplementationSinglePass(osg::State& state, const osg::Vec4& colo
     if (colorMultiplier.a()==0.0f || _color.a()==0.0f) return;
 
     osg::VertexArrayState* vas = state.getCurrentVertexArrayState();
-    bool usingVertexBufferObjects = state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects);
-    bool usingVertexArrayObjects = usingVertexBufferObjects && state.useVertexArrayObject(_useVertexArrayObject);
-    bool requiresSetArrays = !usingVertexBufferObjects || !usingVertexArrayObjects || vas->getRequiresSetArrays();
+    bool requiresSetArrays = vas->getRequiresSetArrays();
 
     if ((_drawMode&(~TEXT))!=0 && !_decorationPrimitives.empty())
     {
@@ -1117,7 +1113,7 @@ void Text::drawImplementationSinglePass(osg::State& state, const osg::Vec4& colo
             if ((*itr)->getMode()==GL_TRIANGLES) state.Color(colorMultiplier.r()*_textBBColor.r(), colorMultiplier.g()*_textBBColor.g(), colorMultiplier.b()*_textBBColor.b(), colorMultiplier.a()*_textBBColor.a());
             else state.Color(colorMultiplier.r(), colorMultiplier.g(), colorMultiplier.b(), colorMultiplier.a());
 
-            (*itr)->draw(state, usingVertexBufferObjects);
+            (*itr)->draw(state, true);
         }
 #if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         state.applyTextureMode(0,GL_TEXTURE_2D,osg::StateAttribute::ON);
@@ -1148,7 +1144,7 @@ void Text::drawImplementationSinglePass(osg::State& state, const osg::Vec4& colo
                 }
             }
 
-            glyphquad._primitives->draw(state, usingVertexBufferObjects);
+            glyphquad._primitives->draw(state, true);
         }
     }
 }
@@ -1184,9 +1180,7 @@ void Text::drawImplementation(osg::State& state, const osg::Vec4& colorMultiplie
     state.Normal(_normal.x(), _normal.y(), _normal.z());
 
     osg::VertexArrayState* vas = state.getCurrentVertexArrayState();
-    bool usingVertexBufferObjects = state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects);
-    bool usingVertexArrayObjects = usingVertexBufferObjects && state.useVertexArrayObject(_useVertexArrayObject);
-    bool requiresSetArrays = !usingVertexBufferObjects || !usingVertexArrayObjects || vas->getRequiresSetArrays();
+    bool requiresSetArrays = vas->getRequiresSetArrays();
 
     if (requiresSetArrays)
     {
@@ -1212,13 +1206,6 @@ void Text::drawImplementation(osg::State& state, const osg::Vec4& colorMultiplie
     }
 
     state.haveAppliedAttribute(osg::StateAttribute::DEPTH);
-
-    if (usingVertexBufferObjects && !usingVertexArrayObjects)
-    {
-        // unbind the VBO's if any are used.
-        vas->unbindVertexBufferObject();
-        vas->unbindElementBufferObject();
-    }
 
     if (needToApplyMatrix)
     {

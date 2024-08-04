@@ -696,10 +696,7 @@ osg::VertexArrayState* osgParticle::ParticleSystem::createVertexArrayStateImplem
     vas->assignColorArrayDispatcher();
     vas->assignTexCoordArrayDispatcher(1);
 
-    if (state.useVertexArrayObject(_useVertexArrayObject))
-    {
-        vas->generateVertexArrayObject();
-    }
+    vas->generateVertexArrayObject();
 
     return vas;
 }

@@ -520,9 +520,7 @@ void Text3D::drawImplementation(osg::RenderInfo& renderInfo) const
     }
 
     osg::VertexArrayState* vas = state.getCurrentVertexArrayState();
-    bool usingVertexBufferObjects = state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects);
-    bool usingVertexArrayObjects = usingVertexBufferObjects && state.useVertexArrayObject(_useVertexArrayObject);
-    bool requiresSetArrays = !usingVertexBufferObjects || !usingVertexArrayObjects || vas->getRequiresSetArrays();
+    bool requiresSetArrays = vas->getRequiresSetArrays();
 
     if (requiresSetArrays)
     {
@@ -546,7 +544,7 @@ void Text3D::drawImplementation(osg::RenderInfo& renderInfo) const
                 itr != _decorationPrimitives.end();
                 ++itr)
             {
-                (*itr)->draw(state, usingVertexBufferObjects);
+                (*itr)->draw(state, true);
             }
         }
     }
@@ -570,29 +568,22 @@ void Text3D::drawImplementation(osg::RenderInfo& renderInfo) const
 
         for(osg::Geometry::PrimitiveSetList::const_iterator itr=_frontPrimitiveSetList.begin(), end = _frontPrimitiveSetList.end(); itr!=end; ++itr)
         {
-            (*itr)->draw(state, usingVertexBufferObjects);
+            (*itr)->draw(state, true);
         }
 
         if (wallStateSet!=frontStateSet) state.apply(wallStateSet);
 
         for(osg::Geometry::PrimitiveSetList::const_iterator itr=_wallPrimitiveSetList.begin(), end = _wallPrimitiveSetList.end(); itr!=end; ++itr)
         {
-            (*itr)->draw(state, usingVertexBufferObjects);
+            (*itr)->draw(state, true);
         }
 
         if (backStateSet!=wallStateSet) state.apply(backStateSet);
 
         for(osg::Geometry::PrimitiveSetList::const_iterator itr=_backPrimitiveSetList.begin(), end = _backPrimitiveSetList.end(); itr!=end; ++itr)
         {
-            (*itr)->draw(state, usingVertexBufferObjects);
+            (*itr)->draw(state, true);
         }
-    }
-
-    if (usingVertexBufferObjects && !usingVertexArrayObjects)
-    {
-        // unbind the VBO's if any are used.
-        vas->unbindVertexBufferObject();
-        vas->unbindElementBufferObject();
     }
 
     if (needToApplyMatrix)

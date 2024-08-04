@@ -122,9 +122,6 @@ class OSG_EXPORT VertexArrayState : public osg::Referenced
         void assignTexCoordArrayDispatcher(unsigned int numUnits);
         void assignVertexAttribArrayDispatcher(unsigned int numUnits);
 
-        inline void setVertexBufferObjectSupported(bool flag) { _isVertexBufferObjectSupported = flag; }
-        inline bool isVertexBufferObjectSupported() const { return _isVertexBufferObjectSupported; }
-
         void setArray(ArrayDispatch* vad, osg::State& state, const osg::Array* new_array);
         void setArray(ArrayDispatch* vad, osg::State& state, GLint size, GLenum type, GLsizei stride, const GLvoid *ptr, GLboolean normalized);
 
@@ -190,7 +187,7 @@ class OSG_EXPORT VertexArrayState : public osg::Referenced
         osg::ref_ptr<ObserverSet>       _stateObserverSet;
         osg::ref_ptr<osg::GLExtensions> _ext;
 
-        bool                            _isVertexBufferObjectSupported;
+        /*bool                            _isVertexBufferObjectSupported;*/
 
         GLuint                          _vertexArrayObject;
 

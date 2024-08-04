@@ -21,8 +21,6 @@ using namespace osg;
 Geometry::Geometry():
     _containsDeprecatedData(false)
 {
-    _supportsVertexBufferObjects = true;
-    _useVertexBufferObjects = true;
 }
 
 Geometry::Geometry(const Geometry& geometry,const CopyOp& copyop):
@@ -34,8 +32,6 @@ Geometry::Geometry(const Geometry& geometry,const CopyOp& copyop):
     _fogCoordArray(copyop(geometry._fogCoordArray.get())),
     _containsDeprecatedData(geometry._containsDeprecatedData)
 {
-    _supportsVertexBufferObjects = true;
-
     for(PrimitiveSetList::const_iterator pitr=geometry._primitives.begin();
         pitr!=geometry._primitives.end();
         ++pitr)
@@ -62,10 +58,6 @@ Geometry::Geometry(const Geometry& geometry,const CopyOp& copyop):
     {
         /*if (_useVertexBufferObjects)*/
         {
-            // copying of arrays doesn't set up buffer objects so we'll need to force
-            // Geometry to assign these, we'll do this by changing the cached value to false then re-enabling.
-            // note do not use setUseVertexBufferObjects(false) as it might modify Arrays that we have not deep-copied.
-            _useVertexBufferObjects = false;
             setUseVertexBufferObjects(true);
         }
     }
@@ -580,12 +572,6 @@ osg::ElementBufferObject* Geometry::getOrCreateElementBufferObject()
 
 void Geometry::setUseVertexBufferObjects(bool flag)
 {
-    // flag = true;
-
-    // OSG_NOTICE<<"Geometry::setUseVertexBufferObjects("<<flag<<")"<<std::endl;
-
-    if (_useVertexBufferObjects==flag) return;
-
     Drawable::setUseVertexBufferObjects(flag);
 
     ArrayList arrayList;
@@ -645,26 +631,6 @@ void Geometry::setUseVertexBufferObjects(bool flag)
             }
         }
     }
-    /*
-    else
-    {
-        for(ArrayList::iterator vitr = arrayList.begin();
-            vitr != arrayList.end();
-            ++vitr)
-        {
-            osg::Array* array = vitr->get();
-            if (array->getVertexBufferObject()) array->setVertexBufferObject(0);
-        }
-
-        for(DrawElementsList::iterator deitr = drawElementsList.begin();
-            deitr != drawElementsList.end();
-            ++deitr)
-        {
-            osg::DrawElements* elements = *deitr;
-            if (elements->getElementBufferObject()) elements->setElementBufferObject(0);
-        }
-    }
-    */
 }
 
 void Geometry::dirtyGLObjects()
@@ -754,16 +720,7 @@ VertexArrayState* Geometry::createVertexArrayStateImplementation(RenderInfo& ren
     if (!_texCoordList.empty()) vas->assignTexCoordArrayDispatcher(_texCoordList.size());
     if (!_vertexAttribList.empty()) vas->assignVertexAttribArrayDispatcher(_vertexAttribList.size());
 
-    if (state.useVertexArrayObject(_useVertexArrayObject))
-    {
-        // OSG_NOTICE<<"  Setup VertexArrayState to use VAO "<<vas<<std::endl;
-
-        vas->generateVertexArrayObject();
-    }
-    else
-    {
-        // OSG_NOTICE<<"  Setup VertexArrayState to without using VAO "<<vas<<std::endl;
-    }
+    vas->generateVertexArrayObject();
 
     return vas;
 }
@@ -771,7 +728,6 @@ VertexArrayState* Geometry::createVertexArrayStateImplementation(RenderInfo& ren
 void Geometry::compileGLObjects(RenderInfo& renderInfo) const
 {
     State& state = *renderInfo.getState();
-    if (renderInfo.getState()->useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects))
     {
         unsigned int contextID = state.getContextID();
         GLExtensions* extensions = state.get<GLExtensions>();
@@ -827,8 +783,6 @@ void Geometry::compileGLObjects(RenderInfo& renderInfo) const
         }
 
         // OSG_NOTICE<<"Time to compile "<<timer.elapsedTime_m()<<"ms"<<std::endl;
-
-        if (state.useVertexArrayObject(_useVertexArrayObject))
         {
             VertexArrayState* vas = 0;
 
@@ -847,10 +801,6 @@ void Geometry::compileGLObjects(RenderInfo& renderInfo) const
         extensions->glBindBuffer(GL_ARRAY_BUFFER_ARB,0);
         extensions->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB,0);
     }
-    else
-    {
-        Drawable::compileGLObjects(renderInfo);
-    }
 }
 
 void Geometry::drawImplementation(RenderInfo& renderInfo) const
@@ -865,15 +815,8 @@ void Geometry::drawImplementation(RenderInfo& renderInfo) const
 
     State& state = *renderInfo.getState();
 
-    bool usingVertexBufferObjects = state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects);
-    bool usingVertexArrayObjects = usingVertexBufferObjects && state.useVertexArrayObject(_useVertexArrayObject);
-
-    osg::VertexArrayState* vas = state.getCurrentVertexArrayState();
-    vas->setVertexBufferObjectSupported(usingVertexBufferObjects);
-
     bool checkForGLErrors = state.getCheckForGLErrors()==osg::State::ONCE_PER_ATTRIBUTE;
     if (checkForGLErrors) state.checkGLErrors("start of Geometry::drawImplementation()");
-
 
     drawVertexArraysImplementation(renderInfo);
 
@@ -885,13 +828,6 @@ void Geometry::drawImplementation(RenderInfo& renderInfo) const
     //
 
     drawPrimitivesImplementation(renderInfo);
-
-    if (usingVertexBufferObjects && !usingVertexArrayObjects)
-    {
-        // unbind the VBO's if any are used.
-        vas->unbindVertexBufferObject();
-        vas->unbindElementBufferObject();
-    }
 
     if (checkForGLErrors) state.checkGLErrors("end of Geometry::drawImplementation().");
 }
@@ -922,10 +858,7 @@ void Geometry::drawVertexArraysImplementation(RenderInfo& renderInfo) const
     attributeDispatchers.activateSecondaryColorArray(_secondaryColorArray.get());
     attributeDispatchers.activateFogCoordArray(_fogCoordArray.get());
 
-    if (state.useVertexArrayObject(_useVertexArrayObject))
-    {
-        if (!vas->getRequiresSetArrays()) return;
-    }
+    if (!vas->getRequiresSetArrays()) return;
 
     vas->lazyDisablingOfVertexAttributes();
 
@@ -973,7 +906,6 @@ void Geometry::drawPrimitivesImplementation(RenderInfo& renderInfo) const
 {
     State& state = *renderInfo.getState();
     AttributeDispatchers& attributeDispatchers = state.getAttributeDispatchers();
-    bool usingVertexBufferObjects = state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects);
 
     bool bindPerPrimitiveSetActive = attributeDispatchers.active();
     for(unsigned int primitiveSetNum=0; primitiveSetNum!=_primitives.size(); ++primitiveSetNum)
@@ -983,7 +915,7 @@ void Geometry::drawPrimitivesImplementation(RenderInfo& renderInfo) const
 
         const PrimitiveSet* primitiveset = _primitives[primitiveSetNum].get();
 
-        primitiveset->draw(state, usingVertexBufferObjects);
+        primitiveset->draw(state, true);
     }
 }
 

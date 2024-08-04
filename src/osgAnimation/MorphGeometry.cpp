@@ -26,7 +26,6 @@ MorphGeometry::MorphGeometry() :
     _positionSource(0),_normalSource(0),
     _morphNormals(true)
 {
-    setUseDisplayList(false);
     setUpdateCallback(new UpdateMorphGeometry);
     setUseVertexBufferObjects(true);
     _morphTransformImplementation = new MorphTransformSoftware();
@@ -39,7 +38,6 @@ MorphGeometry::MorphGeometry(const osg::Geometry& g) :
     _positionSource(0),_normalSource(0),
     _morphNormals(true)
 {
-    setUseDisplayList(false);
     setUpdateCallback(new UpdateMorphGeometry);
     setUseVertexBufferObjects(true);
     _morphTransformImplementation = new MorphTransformSoftware();

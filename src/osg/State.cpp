@@ -102,17 +102,6 @@ State::State():
 
     _isSecondaryColorSupported = false;
     _isFogCoordSupported = false;
-    _isVertexBufferObjectSupported = false;
-    _isVertexArrayObjectSupported = false;
-
-#if OSG_GL3_FEATURES
-    _forceVertexBufferObject = true;
-    _forceVertexArrayObject = true;
-#else
-    _forceVertexBufferObject = false;
-    _forceVertexArrayObject = false;
-#endif
-
 
     _lastAppliedProgramObject = 0;
 
@@ -198,25 +187,6 @@ void State::initializeExtensionProcs()
 
     _isSecondaryColorSupported = osg::isGLExtensionSupported(_contextID,"GL_EXT_secondary_color");
     _isFogCoordSupported = osg::isGLExtensionSupported(_contextID,"GL_EXT_fog_coord");
-    _isVertexBufferObjectSupported = OSG_GLES2_FEATURES || OSG_GLES3_FEATURES || OSG_GL3_FEATURES || osg::isGLExtensionSupported(_contextID,"GL_ARB_vertex_buffer_object");
-    _isVertexArrayObjectSupported = _glExtensions->isVAOSupported;
-
-    const DisplaySettings* ds = getDisplaySettings() ? getDisplaySettings() : osg::DisplaySettings::instance().get();
-
-    if (ds->getVertexBufferHint()==DisplaySettings::VERTEX_BUFFER_OBJECT)
-    {
-        _forceVertexBufferObject = true;
-        _forceVertexArrayObject = false;
-    }
-    else if (ds->getVertexBufferHint()==DisplaySettings::VERTEX_ARRAY_OBJECT)
-    {
-        _forceVertexBufferObject = true;
-        _forceVertexArrayObject = true;
-    }
-
-    OSG_INFO<<"osg::State::initializeExtensionProcs() _forceVertexArrayObject = "<<_forceVertexArrayObject<<std::endl;
-    OSG_INFO<<"                                       _forceVertexBufferObject = "<<_forceVertexBufferObject<<std::endl;
-
 
     // Set up up global VertexArrayState object
     _globalVertexArrayState = new VertexArrayState(this);

@@ -123,16 +123,9 @@ osg::VertexArrayState* TextBase::createVertexArrayStateImplementation(osg::Rende
 
     if (_texcoords.valid()) vas->assignTexCoordArrayDispatcher(1);
 
-    if (state.useVertexArrayObject(_useVertexArrayObject))
-    {
-        OSG_INFO<<"TextBase::createVertexArrayState() Setup VertexArrayState to use VAO "<<vas<<std::endl;
+    OSG_INFO<<"TextBase::createVertexArrayState() Setup VertexArrayState to use VAO "<<vas<<std::endl;
 
-        vas->generateVertexArrayObject();
-    }
-    else
-    {
-        OSG_INFO<<"TextBase::createVertexArrayState() Setup VertexArrayState to without using VAO "<<vas<<std::endl;
-    }
+    vas->generateVertexArrayObject();
 
     return vas;
 }
@@ -140,11 +133,9 @@ osg::VertexArrayState* TextBase::createVertexArrayStateImplementation(osg::Rende
 void TextBase::compileGLObjects(osg::RenderInfo& renderInfo) const
 {
     State& state = *renderInfo.getState();
-    if (renderInfo.getState()->useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects))
     {
         unsigned int contextID = state.getContextID();
         GLExtensions* extensions = state.get<GLExtensions>();
-        if (state.useVertexArrayObject(_useVertexArrayObject))
         {
             VertexArrayState* vas = 0;
 
@@ -157,10 +148,6 @@ void TextBase::compileGLObjects(osg::RenderInfo& renderInfo) const
             drawImplementation(renderInfo);
 
             state.unbindVertexArrayObject();
-        }
-        else
-        {
-            drawImplementation(renderInfo);
         }
 
         // unbind the BufferObjects

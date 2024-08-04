@@ -35,9 +35,6 @@ using namespace osg;
 
 Drawable::Drawable()
 {
-    _supportsVertexBufferObjects = true;
-    _useVertexBufferObjects = true;
-    _useVertexArrayObject = true;
 }
 
 Drawable::Drawable(const Drawable& drawable,const CopyOp& copyop):
@@ -46,9 +43,6 @@ Drawable::Drawable(const Drawable& drawable,const CopyOp& copyop):
     _computeBoundingBoxCallback(drawable._computeBoundingBoxCallback),
     _boundingBox(drawable._boundingBox),
     _shape(copyop(drawable._shape.get())),
-    _supportsVertexBufferObjects(drawable._supportsVertexBufferObjects),
-    _useVertexBufferObjects(drawable._useVertexBufferObjects),
-    _useVertexArrayObject(drawable._useVertexArrayObject),
     _drawCallback(drawable._drawCallback),
     _createVertexArrayStateCallback(drawable._createVertexArrayStateCallback)
 {

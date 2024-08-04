@@ -528,7 +528,6 @@ VertexArrayState::VertexArrayState(osg::State* state):
 {
     _stateObserverSet = _state->getOrCreateObserverSet();
     _ext = _state->get<GLExtensions>();
-    _isVertexBufferObjectSupported =  _ext->isBufferObjectSupported;
 }
 
 VertexArrayState::~VertexArrayState()
@@ -735,7 +734,7 @@ void VertexArrayState::setArray(ArrayDispatch* vad, osg::State& state, const osg
 
         if (vad->array==0)
         {
-            GLBufferObject* vbo = isVertexBufferObjectSupported() ? new_array->getOrCreateGLBufferObject(state.getContextID()) : 0;
+            GLBufferObject* vbo = new_array->getOrCreateGLBufferObject(state.getContextID());
             if (vbo)
             {
                 bindVertexBufferObject(vbo);
@@ -749,7 +748,7 @@ void VertexArrayState::setArray(ArrayDispatch* vad, osg::State& state, const osg
         }
         else if (new_array!=vad->array || new_array->getModifiedCount()!=vad->modifiedCount)
         {
-            GLBufferObject* vbo = isVertexBufferObjectSupported() ? new_array->getOrCreateGLBufferObject(state.getContextID()) : 0;
+            GLBufferObject* vbo = new_array->getOrCreateGLBufferObject(state.getContextID());
             if (vbo)
             {
                 bindVertexBufferObject(vbo);
