@@ -63,10 +63,8 @@ State::State():
 
     #if !defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         _useModelViewAndProjectionUniforms = true;
-        _useVertexAttributeAliasing = true;
     #else
         _useModelViewAndProjectionUniforms = false;
-        _useVertexAttributeAliasing = false;
     #endif
 
     _modelViewMatrixUniform = new Uniform(Uniform::FLOAT_MAT4,"osg_ModelViewMatrix");
@@ -158,14 +156,6 @@ State::~State()
     //_texCoordArrayList.clear();
 
     //_vertexAttribArrayList.clear();
-}
-
-void State::setUseVertexAttributeAliasing(bool flag)
-{
-#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
-    _useVertexAttributeAliasing = flag;
-    if (_globalVertexArrayState.valid()) _globalVertexArrayState->assignAllDispatchers();
-#endif
 }
 
 void State::initializeExtensionProcs()
@@ -1347,7 +1337,6 @@ bool State::convertVertexShaderSourceToOsgBuiltIns(std::string& source) const
         State_Utils::replaceAndInsertDeclaration(source, declPos, "gl_NormalMatrix", "osg_NormalMatrix", "uniform ", "mat3 ");
     }
 
-    if (_useVertexAttributeAliasing)
     {
         State_Utils::replaceAndInsertDeclaration(source, declPos, _vertexAlias._glName,         _vertexAlias._osgName,         attributeQualifier, _vertexAlias._declaration);
         State_Utils::replaceAndInsertDeclaration(source, declPos, _normalAlias._glName,         _normalAlias._osgName,         attributeQualifier, _normalAlias._declaration);

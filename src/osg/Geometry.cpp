@@ -842,7 +842,6 @@ void Geometry::drawVertexArraysImplementation(RenderInfo& renderInfo) const
     AttributeDispatchers& attributeDispatchers = state.getAttributeDispatchers();
 
     attributeDispatchers.reset();
-    attributeDispatchers.setUseVertexAttribAlias(state.getUseVertexAttributeAliasing());
 
     if (handleVertexAttributes)
     {

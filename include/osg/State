@@ -251,10 +251,6 @@ class OSG_EXPORT State : public Referenced
 
         Polytope getViewFrustum() const;
 
-
-        void setUseVertexAttributeAliasing(bool flag);
-        bool getUseVertexAttributeAliasing() const { return _useVertexAttributeAliasing ; }
-
         typedef std::vector<VertexAttribAlias> VertexAttribAliasList;
 
         /** Reset the vertex attribute aliasing to osg's default. This method needs to be called before render anything unless you really know what you're doing !*/
@@ -660,59 +656,30 @@ class OSG_EXPORT State : public Referenced
 
         inline void Vertex(float x, float y, float z, float w=1.0f)
         {
-        #if defined(OSG_GL_VERTEX_FUNCS_AVAILABLE) && !defined(OSG_GLES1_AVAILABLE)
-            if (_useVertexAttributeAliasing) _glVertexAttrib4f( _vertexAlias._location, x,y,z,w);
-            else glVertex4f(x,y,z,w);
-        #else
             _glVertexAttrib4f( _vertexAlias._location, x,y,z,w);
-        #endif
         }
 
         inline void Color(float r, float g, float b, float a=1.0f)
         {
-        #ifdef OSG_GL_VERTEX_FUNCS_AVAILABLE
-            if (_useVertexAttributeAliasing) _glVertexAttrib4f( _colorAlias._location, r,g,b,a);
-            else glColor4f(r,g,b,a);
-        #else
             _glVertexAttrib4f( _colorAlias._location, r,g,b,a);
-        #endif
         }
 
         void Normal(float x, float y, float z)
         {
-        #ifdef OSG_GL_VERTEX_FUNCS_AVAILABLE
-            if (_useVertexAttributeAliasing) _glVertexAttrib4f( _normalAlias._location, x,y,z,0.0);
-            else glNormal3f(x,y,z);
-        #else
             _glVertexAttrib4f( _normalAlias._location, x,y,z,0.0);
-        #endif
         }
 
         void TexCoord(float x, float y=0.0f, float z=0.0f, float w=1.0f)
         {
-        #if !defined(OSG_GLES1_AVAILABLE)
-            #ifdef OSG_GL_VERTEX_FUNCS_AVAILABLE
-                if (_useVertexAttributeAliasing) _glVertexAttrib4f( _texCoordAliasList[0]._location, x,y,z,w);
-                else glTexCoord4f(x,y,z,w);
-            #else
-                _glVertexAttrib4f( _texCoordAliasList[0]._location, x,y,z,w);
-            #endif
-        #endif
+            _glVertexAttrib4f( _texCoordAliasList[0]._location, x,y,z,w);
         }
 
         void MultiTexCoord(unsigned int unit, float x, float y=0.0f, float z=0.0f, float w=1.0f)
         {
-        #if !defined(OSG_GLES1_AVAILABLE)
-            #ifdef OSG_GL_VERTEX_FUNCS_AVAILABLE
-                if (_useVertexAttributeAliasing) _glVertexAttrib4f( _texCoordAliasList[unit]._location, x,y,z,w);
-                else _glMultiTexCoord4f(GL_TEXTURE0+unit,x,y,z,w);
-            #else
-                _glVertexAttrib4f( _texCoordAliasList[unit]._location, x,y,z,w);
-            #endif
-        #endif
+            _glVertexAttrib4f( _texCoordAliasList[unit]._location, x,y,z,w);
         }
 
-        void VerteAttrib(unsigned int location, float x, float y=0.0f, float z=0.0f, float w=0.0f)
+        void VertexAttrib(unsigned int location, float x, float y=0.0f, float z=0.0f, float w=0.0f)
         {
             _glVertexAttrib4f( location, x,y,z,w);
         }
@@ -1111,7 +1078,6 @@ class OSG_EXPORT State : public Referenced
         CheckForGLErrors            _checkGLErrors;
 
 
-        bool                        _useVertexAttributeAliasing;
         VertexAttribAlias           _vertexAlias;
         VertexAttribAlias           _normalAlias;
         VertexAttribAlias           _colorAlias;

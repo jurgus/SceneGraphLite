@@ -773,7 +773,6 @@ void Program::PerContextProgram::linkProgram(osg::State& state)
 
         // set any explicit vertex attribute bindings that are set up via osg::State, such as the vertex arrays
         //  that have been aliase to vertex attrib arrays
-        if (state.getUseVertexAttributeAliasing())
         {
             const AttribBindingList& stateBindlist = state.getAttributeBindingList();
             for( AttribBindingList::const_iterator itr = stateBindlist.begin();

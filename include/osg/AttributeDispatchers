@@ -42,31 +42,101 @@ class OSG_EXPORT AttributeDispatchers : public osg::Referenced
 
         void reset();
 
-        void setUseVertexAttribAlias(bool flag) { _useVertexAttribAlias = flag; }
-        bool getUseVertexAttribAlias() const { return _useVertexAttribAlias; }
-
-
-        #define DISPATCH_OR_ACTIVATE(array, dispatcher) \
-            if (array) { \
-                unsigned int binding = array->getBinding(); \
-                if (binding==osg::Array::BIND_OVERALL) \
-                { \
-                    AttributeDispatch* at = dispatcher; \
-                    if (at) (*at)(0); \
-                } \
-                else if (binding==osg::Array::  BIND_PER_PRIMITIVE_SET) \
-                { \
-                    AttributeDispatch* at = dispatcher; \
-                    if (at) _activeDispatchList.push_back(at); \
-                } \
-            }
-
-
-        void activateColorArray(osg::Array* array) { DISPATCH_OR_ACTIVATE(array, colorDispatcher(array)); }
-        void activateNormalArray(osg::Array* array) { DISPATCH_OR_ACTIVATE(array, normalDispatcher(array)); }
-        void activateSecondaryColorArray(osg::Array* array) { DISPATCH_OR_ACTIVATE(array, secondaryColorDispatcher(array)); }
-        void activateFogCoordArray(osg::Array* array) { DISPATCH_OR_ACTIVATE(array, fogCoordDispatcher(array)); }
-        void activateVertexAttribArray(unsigned int unit, osg::Array* array) { DISPATCH_OR_ACTIVATE(array, vertexAttribDispatcher(unit , array)); }
+        void activateColorArray(osg::Array* array)
+        {
+            if (array)
+            {
+                unsigned int binding = array->getBinding();
+                if (binding == osg::Array::BIND_OVERALL)
+                {
+                    AttributeDispatch* at = colorDispatcher(array); 
+                    if (at)
+                        (*at)(0);
+                }
+                else if (binding == osg::Array::BIND_PER_PRIMITIVE_SET) 
+                {
+                    AttributeDispatch* at = colorDispatcher(array); 
+                    if (at) 
+                        _activeDispatchList.push_back(at);
+                }
+            };
+        }
+        void activateNormalArray(osg::Array* array)
+        {
+            if (array)
+            {
+                unsigned int binding = array->getBinding();
+                if (binding == osg::Array::BIND_OVERALL)
+                {
+                    AttributeDispatch* at = normalDispatcher(array);
+                    if (at)
+                        (*at)(0);
+                }
+                else if (binding == osg::Array::BIND_PER_PRIMITIVE_SET)
+                {
+                    AttributeDispatch* at = normalDispatcher(array);
+                    if (at) 
+                        _activeDispatchList.push_back(at);
+                }
+            };
+        }
+        void activateSecondaryColorArray(osg::Array* array)
+        {
+            if (array)
+            {
+                unsigned int binding = array->getBinding();
+                if (binding == osg::Array::BIND_OVERALL)
+                {
+                    AttributeDispatch* at = secondaryColorDispatcher(array);
+                    if (at)
+                        (*at)(0);
+                }
+                else if (binding == osg::Array::BIND_PER_PRIMITIVE_SET)
+                {
+                    AttributeDispatch* at = secondaryColorDispatcher(array);
+                    if (at) 
+                        _activeDispatchList.push_back(at);
+                }
+            };
+        }
+        void activateFogCoordArray(osg::Array* array)
+        {
+            if (array)
+            {
+                unsigned int binding = array->getBinding();
+                if (binding == osg::Array::BIND_OVERALL)
+                {
+                    AttributeDispatch* at = fogCoordDispatcher(array); 
+                    if (at) 
+                        (*at)(0);
+                }
+                else if (binding == osg::Array::BIND_PER_PRIMITIVE_SET)
+                {
+                    AttributeDispatch* at = fogCoordDispatcher(array);
+                    if (at)
+                        _activeDispatchList.push_back(at);
+                }
+            };
+        }
+        void activateVertexAttribArray(unsigned int unit, osg::Array* array)
+        {
+            if (array)
+            {
+                unsigned int binding = array->getBinding();
+                if (binding == osg::Array::BIND_OVERALL)
+                {
+                    AttributeDispatch* at = vertexAttribDispatcher(unit, array); 
+                    if (at) 
+                        (*at)(0);
+                }
+                else if (binding == osg::Array::BIND_PER_PRIMITIVE_SET)
+                {
+                    AttributeDispatch* at = vertexAttribDispatcher(unit, array);
+                    if (at)
+                        _activeDispatchList.push_back(at);
+                }
+            };
+        }
 
         AttributeDispatch* normalDispatcher(Array* array);
         AttributeDispatch* colorDispatcher(Array* array);
@@ -96,19 +166,12 @@ class OSG_EXPORT AttributeDispatchers : public osg::Referenced
         bool                  _initialized;
         State*                _state;
 
-        AttributeDispatchMap* _normalDispatchers;
-        AttributeDispatchMap* _colorDispatchers;
-        AttributeDispatchMap* _secondaryColorDispatchers;
-        AttributeDispatchMap* _fogCoordDispatchers;
-
         typedef std::vector<AttributeDispatchMap*> AttributeDispatchMapList;
         AttributeDispatchMapList _vertexAttribDispatchers;
 
         typedef std::vector<AttributeDispatch*> AttributeDispatchList;
 
         AttributeDispatchList   _activeDispatchList;
-
-        bool                    _useVertexAttribAlias;
 };
 
 }

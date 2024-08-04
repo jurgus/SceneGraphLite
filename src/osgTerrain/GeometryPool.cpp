@@ -901,7 +901,6 @@ void SharedGeometry::drawImplementation(osg::RenderInfo& renderInfo) const
     osg::AttributeDispatchers& attributeDispatchers = state.getAttributeDispatchers();
 
     attributeDispatchers.reset();
-    attributeDispatchers.setUseVertexAttribAlias(state.getUseVertexAttributeAliasing());
 
     attributeDispatchers.activateNormalArray(_normalArray.get());
     attributeDispatchers.activateColorArray(_colorArray.get());
