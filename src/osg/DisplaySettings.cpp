@@ -257,8 +257,6 @@ void DisplaySettings::setDefaults()
     setShaderHint(SHADER_GLES2);
 #elif defined(OSG_GL3_AVAILABLE)
     setShaderHint(SHADER_GL3);
-#elif defined(OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE)
-    setShaderHint(SHADER_NONE);
 #else
     setShaderHint(SHADER_GL2);
 #endif
