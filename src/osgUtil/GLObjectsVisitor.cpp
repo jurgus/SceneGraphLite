@@ -66,16 +66,6 @@ void GLObjectsVisitor::apply(osg::Drawable& drawable)
         apply(*(drawable.getStateSet()));
     }
 
-    if (_mode&SWITCH_OFF_DISPLAY_LISTS)
-    {
-        drawable.setUseDisplayList(false);
-    }
-
-    if (_mode&SWITCH_ON_DISPLAY_LISTS)
-    {
-        drawable.setUseDisplayList(true);
-    }
-
     if (_mode&SWITCH_ON_VERTEX_BUFFER_OBJECTS)
     {
         drawable.setUseVertexBufferObjects(true);

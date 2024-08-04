@@ -226,14 +226,14 @@ class OSG_EXPORT Drawable : public Node
         virtual void setUseVertexBufferObjects(bool) {};
 
         /** Return whether OpenGL vertex buffer objects should be used when supported by OpenGL driver.*/
-        inline bool getUseVertexBufferObjects() const { return _useVertexBufferObjects; }
+        inline bool getUseVertexBufferObjects() const { return true; }
 
 
         /** Set whether to use a local VertexArrayObject for this Drawable.*/
         void setUseVertexArrayObject(bool) {};
 
         /** Return whether to use a local VertexArrayObject for this Drawable.*/
-        bool getUseVertexArrayObject() const { return _useVertexArrayObject; }
+        bool getUseVertexArrayObject() const { return true; }
 
         /** Force a recompile on next draw() of any OpenGL objects associated with this geoset.*/
         virtual void dirtyGLObjects();
@@ -506,9 +506,9 @@ class OSG_EXPORT Drawable : public Node
 
         /*bool                    _supportsDisplayList;*/
         /*bool                    _useDisplayList;*/
-        bool                    _supportsVertexBufferObjects;
-        bool                    _useVertexBufferObjects;
-        bool                    _useVertexArrayObject;
+        /*bool                    _supportsVertexBufferObjects;*/
+        /*bool                    _useVertexBufferObjects;*/
+        /*bool                    _useVertexArrayObject;*/
 
         typedef osg::buffered_value<GLuint> GLObjectList;
         mutable GLObjectList    _globjList;
@@ -523,44 +523,25 @@ class OSG_EXPORT Drawable : public Node
 inline void Drawable::draw(RenderInfo& renderInfo) const
 {
     State& state = *renderInfo.getState();
-    bool useVertexArrayObject = state.useVertexArrayObject(_useVertexArrayObject);
-    if (useVertexArrayObject)
+    unsigned int contextID = renderInfo.getContextID();
+
+    VertexArrayState* vas = _vertexArrayStateList[contextID].get();
+    if (!vas)
     {
-        unsigned int contextID = renderInfo.getContextID();
-
-        VertexArrayState* vas = _vertexArrayStateList[contextID].get();
-        if (!vas)
-        {
-            _vertexArrayStateList[contextID] = vas = createVertexArrayState(renderInfo);
-        }
-        else
-        {
-            // vas->setRequiresSetArrays(getDataVariance()==osg::Object::DYNAMIC);
-        }
-
-        State::SetCurrentVertexArrayStateProxy setVASProxy(state, vas);
-
-        state.bindVertexArrayObject(vas);
-
-        drawInner(renderInfo);
-
-        vas->setRequiresSetArrays(getDataVariance()==osg::Object::DYNAMIC);
-
-        return;
+        _vertexArrayStateList[contextID] = vas = createVertexArrayState(renderInfo);
+    }
+    else
+    {
+        // vas->setRequiresSetArrays(getDataVariance()==osg::Object::DYNAMIC);
     }
 
-    // TODO, add check against whether VAO is active and supported
-    if (state.getCurrentVertexArrayState())
-    {
-        //OSG_NOTICE<<"state.getCurrentVertexArrayState()->getVertexArrayObject()="<< state.getCurrentVertexArrayState()->getVertexArrayObject()<<std::endl;
-        state.bindVertexArrayObject(state.getCurrentVertexArrayState());
-    }
+    State::SetCurrentVertexArrayStateProxy setVASProxy(state, vas);
 
-    {
-        // if state.previousVertexArrayState() is different than currentVertexArrayState bind current
-        // OSG_NOTICE<<"Fallback drawInner()........................"<<std::endl;
-        drawInner(renderInfo);
-    }
+    state.bindVertexArrayObject(vas);
+
+    drawInner(renderInfo);
+
+    vas->setRequiresSetArrays(getDataVariance()==osg::Object::DYNAMIC);
 }
 #endif
 

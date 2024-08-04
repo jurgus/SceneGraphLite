@@ -6,8 +6,13 @@ IF   (DYNAMIC_OPENSCENEGRAPH)
     ADD_DEFINITIONS(-DOSGDB_LIBRARY)
 
     IF(OSG_PLUGIN_SEARCH_INSTALL_DIR_FOR_PLUGINS)
+	
+		SET(DEFAULT_LIBRARY_PATH "${CMAKE_INSTALL_PREFIX}/lib${LIB_POSTFIX}/${OSG_PLUGINS}")	
+		#string(REGEX REPLACE "^/([a-zA-Z])/" "\\1:/" ${MsysPath} ${DEFAULT_LIBRARY_PATH})	
+		#message("Converted \"${DEFAULT_LIBRARY_PATH}\" to \"${MsysPath}\".")
+
         # Add a default plugin search path component
-        ADD_DEFINITIONS(-DOSG_DEFAULT_LIBRARY_PATH=\"${CMAKE_INSTALL_PREFIX}/lib${LIB_POSTFIX}/${OSG_PLUGINS}\")
+        ADD_DEFINITIONS(-DOSG_DEFAULT_LIBRARY_PATH=\"${DEFAULT_LIBRARY_PATH}\")
     ENDIF()
 
     # Set the library extension according to what configuration is being built.
